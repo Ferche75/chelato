@@ -1,22 +1,28 @@
 import { useState } from 'react';
 import { MapPin, ChevronRight, X } from 'lucide-react';
 import { useBranch } from '../context/BranchContext';
-import { trpc } from '@/providers/trpc';
+
+const MOCK_BRANCHES = [
+  { id: 1, name: "Chelato Miami Beach", address: "123 Ocean Drive, Miami Beach, FL 33139" },
+  { id: 2, name: "Chelato Wynwood", address: "456 NW 27th St, Miami, FL 33127" },
+  { id: 3, name: "Chelato Brickell", address: "789 Brickell Ave, Miami, FL 33131" },
+];
 
 export default function BranchSelector() {
   const { selectedBranch, setSelectedBranch, showSelector, setShowSelector } = useBranch();
   const [selectedId, setSelectedId] = useState<number | null>(selectedBranch?.id || null);
-  const { data: branches, isLoading } = trpc.branch.list.useQuery();
+  const branches = MOCK_BRANCHES;
+  const isLoading = false;
 
-  const handleSelect = (branch: typeof branches extends (infer T)[] | undefined ? T : never) => {
+  const handleSelect = (branch: typeof MOCK_BRANCHES[0]) => {
     setSelectedId(branch.id);
   };
 
   const handleConfirm = () => {
-    if (selectedId && branches) {
+    if (selectedId) {
       const branch = branches.find(b => b.id === selectedId);
       if (branch) {
-        setSelectedBranch(branch);
+        setSelectedBranch(branch as any);
         setShowSelector(false);
       }
     }
@@ -26,15 +32,11 @@ export default function BranchSelector() {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-[rgba(44,24,16,0.6)] backdrop-blur-sm" onClick={() => {
         if (selectedBranch) setShowSelector(false);
       }} />
-
-      {/* Modal */}
       <div className="relative w-full max-w-lg rounded-2xl shadow-2xl animate-scale-in overflow-hidden"
         style={{ background: '#f5f0e8' }}>
-        {/* Header */}
         <div className="p-6 pb-4">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-2xl font-bold text-[#663a7c] font-display">Elegi tu Sucursal</h2>
@@ -49,13 +51,12 @@ export default function BranchSelector() {
           </p>
         </div>
 
-        {/* Branch list */}
         <div className="px-4 pb-4 max-h-[360px] overflow-y-auto">
           {isLoading ? (
             <div className="py-8 text-center text-[#2c1810]/40">Cargando sucursales...</div>
           ) : (
             <div className="space-y-2">
-              {branches?.map((branch) => (
+              {branches.map((branch) => (
                 <button
                   key={branch.id}
                   onClick={() => handleSelect(branch)}
@@ -81,7 +82,6 @@ export default function BranchSelector() {
           )}
         </div>
 
-        {/* Footer */}
         <div className="p-4 pt-2 border-t border-[rgba(212,167,167,0.2)]">
           <button
             onClick={handleConfirm}

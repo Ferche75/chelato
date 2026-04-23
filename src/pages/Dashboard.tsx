@@ -2,34 +2,45 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { LayoutDashboard, IceCream, ClipboardList, MapPin, Package, ChevronLeft, ToggleLeft, ToggleRight, Search } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { trpc } from '@/providers/trpc';
 
 type Tab = 'dashboard' | 'products' | 'orders' | 'branches';
 
-const statusColors: Record<string, string> = {
-  pending: 'bg-amber-100 text-amber-700',
-  preparing: 'bg-blue-100 text-blue-700',
-  ready: 'bg-green-100 text-green-700',
-  delivered: 'bg-gray-100 text-gray-700',
-  cancelled: 'bg-red-100 text-red-700',
-};
-const statusLabels: Record<string, string> = {
-  pending: 'Pendiente', preparing: 'En preparacion', ready: 'Listo', delivered: 'Entregado', cancelled: 'Cancelado',
-};
+const MOCK_PRODUCTS = [
+  { id: 1, name: "Dulce de Leche", image: "/flavors/dulce-de-leche.jpg", basePrice: "8.50", isAvailable: true, isPopsicle: false },
+  { id: 2, name: "Chocolate", image: "/flavors/chocolate.jpg", basePrice: "8.50", isAvailable: true, isPopsicle: false },
+  { id: 3, name: "Frutilla", image: "/flavors/frutilla.jpg", basePrice: "8.50", isAvailable: true, isPopsicle: false },
+  { id: 4, name: "Vainilla", image: "/flavors/crema-americana.jpg", basePrice: "8.00", isAvailable: true, isPopsicle: false },
+  { id: 5, name: "Menta Granizada", image: "/flavors/menta-granizada.jpg", basePrice: "9.00", isAvailable: true, isPopsicle: false },
+  { id: 6, name: "Cookies & Cream", image: "/flavors/cookies-cream.jpg", basePrice: "9.50", isAvailable: true, isPopsicle: false },
+  { id: 7, name: "Pistacho", image: "/flavors/pistacho.jpg", basePrice: "10.00", isAvailable: true, isPopsicle: false },
+  { id: 8, name: "Café", image: "/flavors/cafe.jpg", basePrice: "9.00", isAvailable: true, isPopsicle: false },
+  { id: 9, name: "Coco", image: "/flavors/coco.jpg", basePrice: "8.50", isAvailable: true, isPopsicle: false },
+  { id: 10, name: "Banana Split", image: "/flavors/banana-split.jpg", basePrice: "9.50", isAvailable: true, isPopsicle: false },
+  { id: 11, name: "Limón", image: "/flavors/limon.jpg", basePrice: "8.00", isAvailable: true, isPopsicle: false },
+  { id: 12, name: "Maracuyá", image: "/flavors/maracuya.jpg", basePrice: "8.50", isAvailable: true, isPopsicle: false },
+  { id: 13, name: "Chocolate Blanco", image: "/flavors/chocolate-blanco.jpg", basePrice: "9.50", isAvailable: true, isPopsicle: false },
+  { id: 14, name: "Nocciola", image: "/flavors/nocciola.jpg", basePrice: "10.00", isAvailable: true, isPopsicle: false },
+  { id: 15, name: "Tramontana", image: "/flavors/tramontana.jpg", basePrice: "9.00", isAvailable: true, isPopsicle: false },
+  { id: 101, name: "Paleta Dulce de Leche", image: "/flavors/paleta-dulce-de-leche.jpg", basePrice: "5.50", isAvailable: true, isPopsicle: true },
+  { id: 102, name: "Paleta Fresa", image: "/flavors/paleta-fresa.jpg", basePrice: "5.00", isAvailable: true, isPopsicle: true },
+  { id: 103, name: "Paleta Limón", image: "/flavors/paleta-limon.jpg", basePrice: "5.00", isAvailable: true, isPopsicle: true },
+  { id: 104, name: "Paleta Mango", image: "/flavors/paleta-mango.jpg", basePrice: "5.50", isAvailable: true, isPopsicle: true },
+  { id: 105, name: "Paleta Oreo", image: "/flavors/paleta-oreo.jpg", basePrice: "6.00", isAvailable: true, isPopsicle: true },
+];
+
+const MOCK_BRANCHES = [
+  { id: 1, name: "Chelato Miami Beach", address: "123 Ocean Drive, Miami Beach, FL 33139", phone: "+1 (305) 555-0123", openingHours: { lunes: "12:00 - 22:00", martes: "12:00 - 22:00", miercoles: "12:00 - 22:00", jueves: "12:00 - 23:00", viernes: "12:00 - 24:00", sabado: "11:00 - 24:00", domingo: "11:00 - 22:00" } },
+  { id: 2, name: "Chelato Wynwood", address: "456 NW 27th St, Miami, FL 33127", phone: "+1 (305) 555-0456", openingHours: { lunes: "13:00 - 21:00", martes: "13:00 - 21:00", miercoles: "13:00 - 21:00", jueves: "13:00 - 22:00", viernes: "13:00 - 23:00", sabado: "12:00 - 23:00", domingo: "12:00 - 21:00" } },
+  { id: 3, name: "Chelato Brickell", address: "789 Brickell Ave, Miami, FL 33131", phone: "+1 (305) 555-0789", openingHours: { lunes: "11:00 - 21:00", martes: "11:00 - 21:00", miercoles: "11:00 - 21:00", jueves: "11:00 - 22:00", viernes: "11:00 - 23:00", sabado: "10:00 - 23:00", domingo: "10:00 - 21:00" } },
+];
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
+  const [products, setProducts] = useState(MOCK_PRODUCTS);
 
-  const { data: products, refetch: refetchProducts } = trpc.product.list.useQuery({});
-  const { data: branches } = trpc.branch.list.useQuery();
-
-  const toggleProduct = trpc.product.toggleAvailable.useMutation({
-    onSuccess: () => refetchProducts(),
-  });
-
-  // Local orders
+  const branches = MOCK_BRANCHES;
   const localOrders = JSON.parse(localStorage.getItem('chelato_orders') || '[]');
 
   const tabs = [
@@ -39,9 +50,13 @@ export default function Dashboard() {
     { key: 'branches' as Tab, label: 'Sucursales', icon: MapPin },
   ];
 
-  const filteredProducts = products?.filter(p =>
+  const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const toggleProduct = (id: number) => {
+    setProducts(prev => prev.map(p => p.id === id ? { ...p, isAvailable: !p.isAvailable } : p));
+  };
 
   return (
     <div className="min-h-screen flex pt-16" style={{ background: '#f5f0e8' }}>
@@ -90,8 +105,8 @@ export default function Dashboard() {
               {[
                 { label: 'Pedidos Totales', value: localOrders.length, icon: ClipboardList },
                 { label: 'Ingresos', value: `$${localOrders.reduce((s: number, o: { total: number }) => s + (o.total || 0), 0).toFixed(0)}`, icon: Package },
-                { label: 'Productos Activos', value: products?.filter(p => p.isAvailable).length || 0, icon: IceCream },
-                { label: 'Sucursales', value: branches?.length || 0, icon: MapPin },
+                { label: 'Productos Activos', value: products.filter(p => p.isAvailable).length, icon: IceCream },
+                { label: 'Sucursales', value: branches.length, icon: MapPin },
               ].map(stat => (
                 <div key={stat.label} className="p-6 rounded-xl bg-white shadow-sm">
                   <stat.icon size={20} className="text-[#c67d6f] mb-3" />
@@ -126,7 +141,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredProducts?.map(p => (
+                    {filteredProducts.map(p => (
                       <tr key={p.id} className="border-t border-[rgba(212,167,167,0.1)]">
                         <td className="px-6 py-3">
                           <div className="flex items-center gap-3">
@@ -138,9 +153,9 @@ export default function Dashboard() {
                           </div>
                         </td>
                         <td className="px-6 py-3 text-sm">{p.isPopsicle ? 'Paletas' : 'Helados'}</td>
-                        <td className="px-6 py-3 text-sm font-semibold text-[#c67d6f]">${parseFloat(p.basePrice).toFixed(0)}</td>
+                        <td className="px-6 py-3 text-sm font-semibold text-[#c67d6f]">${parseFloat(p.basePrice).toFixed(2)}</td>
                         <td className="px-6 py-3">
-                          <button onClick={() => toggleProduct.mutate({ id: p.id, isAvailable: !p.isAvailable })}>
+                          <button onClick={() => toggleProduct(p.id)}>
                             {p.isAvailable ? <ToggleRight size={24} className="text-green-500" /> : <ToggleLeft size={24} className="text-gray-300" />}
                           </button>
                         </td>
@@ -173,12 +188,12 @@ export default function Dashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {localOrders.map((o: { id: number; customerName: string; total: number; items: Array<{ formatLabel: string; flavors: string[] }>; createdAt: string }) => (
+                      {localOrders.map((o: any) => (
                         <tr key={o.id} className="border-t border-[rgba(212,167,167,0.1)]">
                           <td className="px-6 py-3 text-sm font-medium">#{o.id}</td>
                           <td className="px-6 py-3 text-sm">{o.customerName}</td>
                           <td className="px-6 py-3 text-sm text-[#2c1810]/60">
-                            {o.items.map((it: { formatLabel: string; flavors: string[] }) => `${it.formatLabel}: ${it.flavors.join(', ')}`).join(' | ')}
+                            {o.items.map((it: any) => `${it.formatLabel}: ${it.flavors.join(', ')}`).join(' | ')}
                           </td>
                           <td className="px-6 py-3 text-sm font-bold text-[#c67d6f]">${o.total.toFixed(0)}</td>
                           <td className="px-6 py-3 text-sm text-[#2c1810]/50">
@@ -199,7 +214,7 @@ export default function Dashboard() {
           <div>
             <h1 className="text-3xl font-bold text-[#663a7c] font-display mb-6">Sucursales</h1>
             <div className="grid sm:grid-cols-2 gap-4">
-              {branches?.map(b => {
+              {branches.map(b => {
                 const hours = b.openingHours as Record<string, string>;
                 return (
                   <div key={b.id} className="p-5 rounded-xl bg-white shadow-sm">

@@ -3,24 +3,49 @@ import { MapPin, Clock, Phone, ChevronDown, Instagram, Facebook, MessageCircle, 
 import { useBranch } from '../context/BranchContext';
 import { useCart } from '../context/CartContext';
 import type { CartFlavor } from '../context/CartContext';
-import { trpc } from '@/providers/trpc';
 
-/* ───── FORMATOS ───── */
 const FORMATS = [
-  { key: '1/4kg', label: '1/4 kg', desc: '2 gustos', price: 320, maxFlavors: 2, icon: 'cup' },
-  { key: '1/2kg', label: '1/2 kg', desc: '3 gustos', price: 550, maxFlavors: 3, icon: 'cup' },
-  { key: '1kg', label: '1 kg', desc: '4 gustos', price: 950, maxFlavors: 4, icon: 'cup' },
-  { key: 'cono', label: 'Cono', desc: '2 gustos', price: 180, maxFlavors: 2, icon: 'cone' },
-  { key: 'vaso', label: 'Vaso', desc: '2 gustos', price: 200, maxFlavors: 2, icon: 'cup' },
+  { key: '1/4kg', label: '1/4 kg', desc: '2 gustos', price: 8.50, maxFlavors: 2, icon: 'cup' },
+  { key: '1/2kg', label: '1/2 kg', desc: '3 gustos', price: 14.00, maxFlavors: 3, icon: 'cup' },
+  { key: '1kg', label: '1 kg', desc: '4 gustos', price: 24.00, maxFlavors: 4, icon: 'cup' },
+  { key: 'cono', label: 'Cono', desc: '2 gustos', price: 5.50, maxFlavors: 2, icon: 'cone' },
+  { key: 'vaso', label: 'Vaso', desc: '2 gustos', price: 6.00, maxFlavors: 2, icon: 'cup' },
+];
+
+const MOCK_PRODUCTS = [
+  { id: 1, name: "Dulce de Leche", image: "/flavors/dulce-de-leche.jpg", basePrice: "8.50", isAvailable: true, isPopsicle: false },
+  { id: 2, name: "Chocolate", image: "/flavors/chocolate.jpg", basePrice: "8.50", isAvailable: true, isPopsicle: false },
+  { id: 3, name: "Frutilla", image: "/flavors/frutilla.jpg", basePrice: "8.50", isAvailable: true, isPopsicle: false },
+  { id: 4, name: "Vainilla", image: "/flavors/crema-americana.jpg", basePrice: "8.00", isAvailable: true, isPopsicle: false },
+  { id: 5, name: "Menta Granizada", image: "/flavors/menta-granizada.jpg", basePrice: "9.00", isAvailable: true, isPopsicle: false },
+  { id: 6, name: "Cookies & Cream", image: "/flavors/cookies-cream.jpg", basePrice: "9.50", isAvailable: true, isPopsicle: false },
+  { id: 7, name: "Pistacho", image: "/flavors/pistacho.jpg", basePrice: "10.00", isAvailable: true, isPopsicle: false },
+  { id: 8, name: "Café", image: "/flavors/cafe.jpg", basePrice: "9.00", isAvailable: true, isPopsicle: false },
+  { id: 9, name: "Coco", image: "/flavors/coco.jpg", basePrice: "8.50", isAvailable: true, isPopsicle: false },
+  { id: 10, name: "Banana Split", image: "/flavors/banana-split.jpg", basePrice: "9.50", isAvailable: true, isPopsicle: false },
+  { id: 11, name: "Limón", image: "/flavors/limon.jpg", basePrice: "8.00", isAvailable: true, isPopsicle: false },
+  { id: 12, name: "Maracuyá", image: "/flavors/maracuya.jpg", basePrice: "8.50", isAvailable: true, isPopsicle: false },
+  { id: 13, name: "Chocolate Blanco", image: "/flavors/chocolate-blanco.jpg", basePrice: "9.50", isAvailable: true, isPopsicle: false },
+  { id: 14, name: "Nocciola", image: "/flavors/nocciola.jpg", basePrice: "10.00", isAvailable: true, isPopsicle: false },
+  { id: 15, name: "Tramontana", image: "/flavors/tramontana.jpg", basePrice: "9.00", isAvailable: true, isPopsicle: false },
+  { id: 101, name: "Paleta Dulce de Leche", image: "/flavors/paleta-dulce-de-leche.jpg", basePrice: "5.50", isAvailable: true, isPopsicle: true },
+  { id: 102, name: "Paleta Fresa", image: "/flavors/paleta-fresa.jpg", basePrice: "5.00", isAvailable: true, isPopsicle: true },
+  { id: 103, name: "Paleta Limón", image: "/flavors/paleta-limon.jpg", basePrice: "5.00", isAvailable: true, isPopsicle: true },
+  { id: 104, name: "Paleta Mango", image: "/flavors/paleta-mango.jpg", basePrice: "5.50", isAvailable: true, isPopsicle: true },
+  { id: 105, name: "Paleta Oreo", image: "/flavors/paleta-oreo.jpg", basePrice: "6.00", isAvailable: true, isPopsicle: true },
+];
+
+const MOCK_BRANCHES = [
+  { id: 1, name: "Chelato Miami Beach", address: "123 Ocean Drive, Miami Beach, FL 33139", phone: "+1 (305) 555-0123", openingHours: { lunes: "12:00 - 22:00", martes: "12:00 - 22:00", miercoles: "12:00 - 22:00", jueves: "12:00 - 23:00", viernes: "12:00 - 24:00", sabado: "11:00 - 24:00", domingo: "11:00 - 22:00" } },
+  { id: 2, name: "Chelato Wynwood", address: "456 NW 27th St, Miami, FL 33127", phone: "+1 (305) 555-0456", openingHours: { lunes: "13:00 - 21:00", martes: "13:00 - 21:00", miercoles: "13:00 - 21:00", jueves: "13:00 - 22:00", viernes: "13:00 - 23:00", sabado: "12:00 - 23:00", domingo: "12:00 - 21:00" } },
+  { id: 3, name: "Chelato Brickell", address: "789 Brickell Ave, Miami, FL 33131", phone: "+1 (305) 555-0789", openingHours: { lunes: "11:00 - 21:00", martes: "11:00 - 21:00", miercoles: "11:00 - 21:00", jueves: "11:00 - 22:00", viernes: "11:00 - 23:00", sabado: "10:00 - 23:00", domingo: "10:00 - 21:00" } },
 ];
 
 export default function Home() {
   const { selectedBranch, setShowSelector } = useBranch();
   const { addItem, setIsOpen } = useCart();
   const [heroLoaded, setHeroLoaded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'helados' | 'paletas'>('helados');
 
-  /* Modal de gustos */
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<typeof FORMATS[0] | null>(null);
   const [pickedFlavors, setPickedFlavors] = useState<CartFlavor[]>([]);
@@ -29,18 +54,15 @@ export default function Home() {
   const catalogRef = useRef<HTMLDivElement>(null);
   const locationsRef = useRef<HTMLDivElement>(null);
 
-  const { data: products, isLoading } = trpc.branch.getProducts.useQuery(
-    { branchId: selectedBranch?.id || 1 },
-    { enabled: !!selectedBranch }
-  );
-  const { data: allBranches } = trpc.branch.list.useQuery();
+  const products = MOCK_PRODUCTS;
+  const allBranches = MOCK_BRANCHES;
+  const isLoading = false;
 
   useEffect(() => { setHeroLoaded(true); }, []);
 
-  const helados = products?.filter(p => !p.isPopsicle) || [];
-  const paletas = products?.filter(p => p.isPopsicle) || [];
+  const helados = products.filter(p => !p.isPopsicle);
+  const paletas = products.filter(p => p.isPopsicle);
 
-  /* Abrir selector de gustos */
   const openFlavorPicker = (format: typeof FORMATS[0]) => {
     setSelectedFormat(format);
     setPickedFlavors([]);
@@ -48,7 +70,6 @@ export default function Home() {
     setPickerOpen(true);
   };
 
-  /* Toggle gusto */
   const toggleFlavor = (name: string, image: string) => {
     if (!selectedFormat) return;
     setPickedFlavors(prev => {
@@ -59,7 +80,6 @@ export default function Home() {
     });
   };
 
-  /* Agregar al carrito */
   const addToCart = () => {
     if (!selectedFormat || pickedFlavors.length === 0) return;
     addItem({
@@ -79,10 +99,9 @@ export default function Home() {
     ref.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  /* ===== RENDER ===== */
   return (
     <div className="min-h-screen" style={{ background: '#f5f0e8' }}>
-      {/* ── HERO ── */}
+      {/* HERO */}
       <section className="relative h-screen overflow-hidden flex items-center justify-center">
         <video autoPlay muted loop playsInline
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${heroLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -114,7 +133,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CATALOGO: FORMATOS + GUSTOS ── */}
+      {/* CATALOGO */}
       <section id="catalogo" ref={catalogRef} className="py-20 md:py-28 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
@@ -142,13 +161,11 @@ export default function Home() {
             </div>
           ) : (
             <>
-              {/* GRID DE FORMATOS */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-16">
                 {FORMATS.map(fmt => (
                   <button key={fmt.key} onClick={() => openFlavorPicker(fmt)}
                     className="group relative p-6 rounded-2xl text-center transition-all hover:-translate-y-1.5 hover:shadow-xl"
                     style={{ background: '#f5f0e8', boxShadow: '0 4px 24px rgba(44,24,16,0.06)', border: '1px solid rgba(212,167,167,0.2)' }}>
-                    {/* Icon */}
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[rgba(212,167,167,0.15)] flex items-center justify-center group-hover:bg-[rgba(102,58,124,0.1)] transition-colors">
                       {fmt.icon === 'cone' ? (
                         <svg viewBox="0 0 48 48" className="w-8 h-8" fill="none" stroke="#663a7c" strokeWidth="2">
@@ -164,7 +181,7 @@ export default function Home() {
                     </div>
                     <h3 className="font-display text-lg font-bold text-[#2c1810] mb-1">{fmt.label}</h3>
                     <p className="text-xs text-[#2c1810]/50 mb-3">{fmt.desc}</p>
-                    <p className="text-xl font-bold text-[#c67d6f]">${fmt.price}</p>
+                    <p className="text-xl font-bold text-[#c67d6f]">${fmt.price.toFixed(2)}</p>
                     <div className="mt-4 px-4 py-2 rounded-full bg-[#663a7c] text-white text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
                       Elegir Gustos
                     </div>
@@ -172,7 +189,6 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* PALETAS SECTION */}
               <div className="mb-8">
                 <h3 className="text-2xl font-bold text-[#663a7c] font-display text-center mb-8">Nuestras Paletas</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
@@ -185,7 +201,7 @@ export default function Home() {
                       <div className="p-4">
                         <h4 className="font-display font-bold text-[#2c1810] text-sm mb-1">{p.name}</h4>
                         <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-[#c67d6f]">${parseFloat(p.basePrice).toFixed(0)}</span>
+                          <span className="text-lg font-bold text-[#c67d6f]">${parseFloat(p.basePrice).toFixed(2)}</span>
                           <button onClick={() => {
                             addItem({
                               id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -212,20 +228,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FLAVOR PICKER MODAL ── */}
+      {/* FLAVOR PICKER MODAL */}
       {pickerOpen && selectedFormat && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-[rgba(44,24,16,0.6)] backdrop-blur-sm" onClick={() => setPickerOpen(false)} />
           <div className="relative w-full max-w-3xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col animate-scale-in"
             style={{ background: '#f5f0e8' }}>
-            {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-[rgba(212,167,167,0.2)]">
               <div>
                 <h3 className="text-xl font-bold text-[#663a7c] font-display">
                   {selectedFormat.label} — Elegi tus gustos
                 </h3>
                 <p className="text-xs text-[#2c1810]/50 mt-0.5">
-                  Selecciona hasta {selectedFormat.maxFlavors} {selectedFormat.maxFlavors === 1 ? 'gusto' : 'gustos'} (${selectedFormat.price})
+                  Selecciona hasta {selectedFormat.maxFlavors} {selectedFormat.maxFlavors === 1 ? 'gusto' : 'gustos'} (${selectedFormat.price.toFixed(2)})
                 </p>
               </div>
               <button onClick={() => setPickerOpen(false)} className="p-1 text-[#2c1810]/40 hover:text-[#2c1810]">
@@ -233,7 +248,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Selected flavors bar */}
             <div className="px-5 py-3 border-b border-[rgba(212,167,167,0.15)] flex items-center gap-2 flex-wrap">
               <span className="text-xs font-semibold text-[#2c1810]/50 uppercase tracking-wider">Tus gustos:</span>
               {pickedFlavors.length === 0 ? (
@@ -251,7 +265,6 @@ export default function Home() {
               </span>
             </div>
 
-            {/* Flavor grid */}
             <div className="flex-1 overflow-y-auto p-5">
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                 {helados.map(h => (
@@ -281,7 +294,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Footer */}
             <div className="p-5 border-t border-[rgba(212,167,167,0.2)] flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <button onClick={() => setQty(Math.max(1, qty - 1))}
@@ -296,7 +308,7 @@ export default function Home() {
               </div>
               <div className="flex-1 text-right">
                 <p className="text-xs text-[#2c1810]/50">Total</p>
-                <p className="text-xl font-bold text-[#c67d6f]">${(selectedFormat.price * qty).toFixed(0)}</p>
+                <p className="text-xl font-bold text-[#c67d6f]">${(selectedFormat.price * qty).toFixed(2)}</p>
               </div>
               <button onClick={addToCart}
                 disabled={pickedFlavors.length === 0}
@@ -313,7 +325,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── ABOUT ── */}
+      {/* ABOUT */}
       <section id="nosotros" className="py-20 md:py-28 px-4 md:px-8" style={{ background: '#f5f0e8' }}>
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 md:gap-20 items-center">
           <div>
@@ -322,12 +334,12 @@ export default function Home() {
               La Historia<br />de Chelato
             </h2>
             <p className="text-[#2c1810]/70 leading-relaxed mb-8">
-              Lo que empezo como un sueno entre amigos se convirtio en la heladeria favorita de Montevideo.
+              Lo que empezo como un sueno entre amigos se convirtio en la heladeria favorita de Miami.
               Cada sabor cuenta una historia, cada paleta lleva una sonrisa. Usamos ingredientes frescos,
               recetas tradicionales y mucho amor para crear helados que hacen feliz a cualquier dia.
             </p>
             <div className="grid grid-cols-3 gap-6">
-              {[{ number: '9', label: 'Sucursales' }, { number: '20+', label: 'Sabores' }, { number: '50K+', label: 'Sonrisas' }].map(s => (
+              {[{ number: '3', label: 'Sucursales' }, { number: '20+', label: 'Sabores' }, { number: '50K+', label: 'Sonrisas' }].map(s => (
                 <div key={s.label}>
                   <p className="text-3xl md:text-4xl font-bold text-[#c67d6f] font-display">{s.number}</p>
                   <p className="text-xs uppercase tracking-wider text-[#2c1810]/50 font-semibold mt-1">{s.label}</p>
@@ -342,17 +354,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── LOCATIONS ── */}
+      {/* LOCATIONS */}
       <section id="sucursales" ref={locationsRef}
         className="py-20 md:py-28 px-4 md:px-8"
         style={{ background: 'linear-gradient(135deg, #d4a7a7 0%, #e8dcc8 100%)' }}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-[#663a7c] font-display mb-3">Encontra tu Chelato</h2>
-            <p className="text-[#2c1810]/60">9 sucursales para que nunca te falte helado</p>
+            <p className="text-[#2c1810]/60">3 sucursales en Miami para que nunca te falte helado</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {allBranches?.map(b => {
+            {allBranches.map(b => {
               const hours = b.openingHours as Record<string, string>;
               const today = new Date().toLocaleDateString('es-UY', { weekday: 'long' }).toLowerCase();
               return (
@@ -376,7 +388,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
+      {/* FOOTER */}
       <footer style={{ background: '#663a7c' }} className="text-[#d4a7a7]">
         <div className="py-16 px-4 md:px-8 border-b border-[rgba(212,167,167,0.2)]">
           <div className="max-w-xl mx-auto text-center">
@@ -407,12 +419,12 @@ export default function Home() {
             <div>
               <h4 className="text-white font-semibold text-sm mb-3">Sucursales</h4>
               <ul className="space-y-2 text-sm text-[#d4a7a7]/70">
-                {allBranches?.slice(0, 5).map(b => <li key={b.id}><span className="hover:text-white transition-colors cursor-pointer">{b.name}</span></li>)}
+                {allBranches.slice(0, 5).map(b => <li key={b.id}><span className="hover:text-white transition-colors cursor-pointer">{b.name}</span></li>)}
               </ul>
             </div>
             <div>
               <h4 className="text-white font-semibold text-sm mb-3">Contacto</h4>
-              <p className="text-sm text-[#d4a7a7]/70 mb-3">hola@chelato.com.uy</p>
+              <p className="text-sm text-[#d4a7a7]/70 mb-3">hola@chelato.com</p>
               <div className="flex gap-3">
                 <Instagram size={20} className="hover:text-white transition-colors cursor-pointer" />
                 <Facebook size={20} className="hover:text-white transition-colors cursor-pointer" />
